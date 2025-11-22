@@ -1,0 +1,15 @@
+# Laravel
+backend/vendor
+backend/storage/*.key
+
+# Node / React
+frontend/node_modules
+front-end/node_modules
+
+# Env files
+backend/.env
+frontend/.env
+.env
+
+# Docker junk
+*.pid

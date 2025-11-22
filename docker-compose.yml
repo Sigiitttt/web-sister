@@ -1,0 +1,78 @@
+services:
+  # Service 1: Backend (Laravel)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pendakian-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www # Sinkronisasi kode (Hot Reload)
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=pendakian_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  # Service 2: Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pendakian-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Mencegah konflik node_modules lokal
+    environment:
+      # Memberitahu React URL backend (penting untuk API)
+      - VITE_API_BASE_URL=http://localhost:8000/api 
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # Service 3: Database (MySQL)
+  mysql:
+    image: mysql:8.0
+    container_name: pendakian-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=pendakian_db
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - db-data:/var/lib/mysql # Menyimpan data agar tidak hilang saat restart
+    networks:
+      - app-network
+
+  # Service 4: phpMyAdmin (Opsional - Untuk melihat database di browser)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pendakian-pma
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=mysql
+      - MYSQL_ROOT_PASSWORD=root
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+# Definisi Volume untuk Database
+volumes:
+  db-data:
+
+# Definisi Network agar semua service bisa saling komunikasi
+networks:
+  app-network:
+    driver: bridge

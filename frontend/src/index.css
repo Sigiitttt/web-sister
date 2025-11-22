@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Style tambahan Anda bisa ditaruh di bawah sini */
+body {
+  @apply bg-gray-50 text-slate-800;
+}

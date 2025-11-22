@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Interaktif - Proyek Booking Pendakian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Soft Nordic Blue -->
+    <!-- Application Structure Plan: SPA ini dirancang dengan struktur dashboard multi-bagian yang dinavigasi melalui sidebar tetap, bukan meniru struktur laporan asli. Pendekatan ini dipilih untuk memfasilitasi eksplorasi non-linear. Pengguna dapat langsung melompat ke bagian teknis yang relevan (misalnya, Database atau API) tanpa harus menggulir melalui informasi pengantar. Struktur ini terdiri dari: 1) Ringkasan Proyek (latar belakang & tujuan), 2) Arsitektur & Teknologi (visualisasi konsep teknis), 3) Struktur Database (eksplorasi tabel interaktif), dan 4) Dokumentasi API (daftar endpoint yang dapat dicari dan difilter). Alur ini memungkinkan pemahaman bertingkat, dari gambaran umum hingga detail implementasi, yang sangat meningkatkan kemudahan konsumsi informasi teknis. -->
+    <!-- Visualization & Content Choices: 
+        - Latar Belakang & Tujuan Proyek -> Inform -> Blok Teks -> Statis -> Menyediakan konteks awal yang penting / HTML.
+        - Arsitektur Three-Tier -> Organize -> Diagram Visual -> Statis -> Mengilustrasikan struktur sistem secara visual tanpa memerlukan interaksi kompleks / Tailwind CSS Grid.
+        - Teknologi yang Digunakan -> Inform -> Daftar Berikon -> Statis -> Menampilkan tumpukan teknologi secara ringkas dan jelas / HTML + Unicode.
+        - Skema Database -> Organize/Inform -> Daftar Tabel Interaktif -> Klik untuk melihat detail kolom -> Memungkinkan pengguna fokus pada satu tabel tanpa terbebani oleh keseluruhan skema / Vanilla JS.
+        - Daftar Endpoint API -> Organize/Inform -> Daftar yang Dapat Dicari & Difilter -> Klik untuk detail, cari, filter berdasarkan grup -> Menyederhanakan navigasi puluhan endpoint teknis / Vanilla JS.
+        - Pembagian Tugas API -> Compare -> Diagram Batang (Bar Chart) -> Hover untuk detail -> Memberikan visualisasi cepat tentang distribusi beban kerja antar anggota tim / Chart.js (Canvas). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-link.active {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 50vh;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .table-badge {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .table-badge.active {
+            background-color: #1d4ed8;
+            color: white;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 text-white flex-shrink-0 flex flex-col">
+            <div class="h-20 flex items-center justify-center text-2xl font-bold border-b border-gray-700">
+                Proyek Pendakian
+            </div>
+            <nav id="sidebar-nav" class="flex-1 p-4 space-y-2">
+                <a href="#ringkasan" data-section="ringkasan" class="sidebar-link active flex items-center p-3 rounded-lg hover:bg-gray-700">
+                    <span class="mr-3">📄</span> Ringkasan Proyek
+                </a>
+                <a href="#arsitektur" data-section="arsitektur" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-gray-700">
+                    <span class="mr-3">🏗️</span> Arsitektur & Teknologi
+                </a>
+                <a href="#database" data-section="database" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-gray-700">
+                    <span class="mr-3">🗃️</span> Struktur Database
+                </a>
+                <a href="#api" data-section="api" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-gray-700">
+                    <span class="mr-3">⚡</span> Dokumentasi API
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+
+            <!-- Ringkasan Proyek Section -->
+            <section id="ringkasan" class="content-section active">
+                <h1 class="text-4xl font-bold mb-4 text-gray-900">Ringkasan Proyek: Sistem Booking Pendakian</h1>
+                <p class="text-lg text-gray-600 mb-8">
+                    Bagian ini menyajikan gambaran umum proyek, mulai dari latar belakang yang mendorong pengembangan aplikasi hingga tujuan yang ingin dicapai. Anda akan menemukan justifikasi mengapa sistem ini dibutuhkan dan masalah apa yang coba dipecahkan, baik dari sisi pendaki maupun pengelola.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold mb-3 text-blue-600">Latar Belakang & Masalah</h2>
+                        <p class="text-gray-700 leading-relaxed">
+                            Manajemen pendakian Gunung Penanggungan yang masih manual menyebabkan ketidakpastian kuota bagi pendaki dan inefisiensi bagi pengelola. Proses pendaftaran, verifikasi pembayaran, hingga pencatatan pendaki yang naik-turun memakan waktu dan rentan kesalahan. Informasi penting seperti SOP dan cuaca juga tidak terpusat. Proyek ini bertujuan untuk memecahkan masalah tersebut dengan sistem online terintegrasi.
+                        </p>
+                    </div>
+                     <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold mb-3 text-blue-600">Tujuan Proyek</h2>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li>Membangun prototipe aplikasi booking pendakian berbasis web yang modern.</li>
+                            <li>Menyediakan antarmuka ramah pengguna untuk pendaki (info, booking) dan admin (dashboard pengelolaan).</li>
+                            <li>Mengimplementasikan arsitektur *Three-Tier* yang modular dan skalabel.</li>
+                            <li>Mengembangkan RESTful API sebagai jembatan komunikasi data antara frontend dan backend.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                 <div class="bg-white p-6 rounded-lg shadow-md mt-8">
+                    <h2 class="text-2xl font-bold mb-4 text-blue-600">Pembagian Tugas Pengembangan API</h2>
+                    <p class="text-gray-600 mb-6">Distribusi pengembangan endpoint API di antara anggota tim untuk memastikan pengerjaan yang paralel dan efisien. Grafik di bawah ini memvisualisasikan jumlah endpoint yang menjadi tanggung jawab setiap anggota.</p>
+                    <div class="chart-container">
+                        <canvas id="taskDistributionChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Arsitektur & Teknologi Section -->
+            <section id="arsitektur" class="content-section">
+                <h1 class="text-4xl font-bold mb-4 text-gray-900">Arsitektur & Tumpukan Teknologi</h1>
+                 <p class="text-lg text-gray-600 mb-8">
+                    Bagian ini menjelaskan fondasi teknis dari aplikasi. Kami menggunakan arsitektur *Three-Tier* untuk memisahkan logika antarmuka, bisnis, dan data. Visualisasi di bawah ini menguraikan setiap lapisan beserta teknologi utama yang digunakan untuk membangun sistem yang andal dan terstruktur.
+                </p>
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Arsitektur Sistem: Three-Tier</h2>
+                    <div class="grid md:grid-cols-3 gap-8 text-center">
+                        <div class="p-6 border rounded-lg">
+                            <div class="text-5xl mb-3">🖥️</div>
+                            <h3 class="text-xl font-semibold mb-2">Presentation Tier (Frontend)</h3>
+                            <p class="text-gray-600">Antarmuka yang dilihat dan diinteraksikan oleh pengguna. Dibangun menggunakan React.js untuk pengalaman yang dinamis dan responsif.</p>
+                        </div>
+                        <div class="p-6 border rounded-lg">
+                             <div class="text-5xl mb-3">⚙️</div>
+                            <h3 class="text-xl font-semibold mb-2">Application Tier (Backend)</h3>
+                            <p class="text-gray-600">Otak dari sistem yang berisi semua logika bisnis. Dibangun sebagai RESTful API menggunakan Laravel (PHP) untuk memproses data.</p>
+                        </div>
+                        <div class="p-6 border rounded-lg">
+                            <div class="text-5xl mb-3">💾</div>
+                            <h3 class="text-xl font-semibold mb-2">Data Tier (Database)</h3>
+                            <p class="text-gray-600">Pusat penyimpanan semua informasi aplikasi. Menggunakan MySQL untuk mengelola data secara relasional dan terstruktur.</p>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mt-12 mb-6 text-center text-blue-600">Teknologi yang Digunakan</h2>
+                     <div class="flex justify-center flex-wrap gap-6 text-center">
+                        <div class="p-4 rounded-lg bg-gray-100 w-40">
+                            <h4 class="font-semibold">Frontend</h4>
+                            <p class="text-gray-600">React.js</p>
+                        </div>
+                         <div class="p-4 rounded-lg bg-gray-100 w-40">
+                            <h4 class="font-semibold">Styling</h4>
+                            <p class="text-gray-600">Tailwind CSS</p>
+                        </div>
+                        <div class="p-4 rounded-lg bg-gray-100 w-40">
+                            <h4 class="font-semibold">Backend</h4>
+                            <p class="text-gray-600">Laravel (PHP)</p>
+                        </div>
+                        <div class="p-4 rounded-lg bg-gray-100 w-40">
+                            <h4 class="font-semibold">Database</h4>
+                            <p class="text-gray-600">MySQL</p>
+                        </div>
+                        <div class="p-4 rounded-lg bg-gray-100 w-40">
+                            <h4 class="font-semibold">API Testing</h4>
+                            <p class="text-gray-600">Postman</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Struktur Database Section -->
+            <section id="database" class="content-section">
+                <h1 class="text-4xl font-bold mb-4 text-gray-900">Struktur Database</h1>
+                 <p class="text-lg text-gray-600 mb-8">
+                    Database adalah jantung dari aplikasi ini, menyimpan semua informasi dari akun pengguna hingga riwayat pendakian. Bagian ini memungkinkan Anda untuk menjelajahi setiap tabel secara interaktif. Klik pada nama tabel untuk melihat detail kolom, tipe data, dan deskripsi fungsinya dalam sistem.
+                </p>
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="md:w-1/3">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-bold mb-4 text-blue-600">Tabel Database</h2>
+                            <div id="db-tables-nav" class="flex flex-wrap gap-2">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:w-2/3">
+                         <div id="db-table-details" class="bg-white p-6 rounded-lg shadow-md min-h-[300px]">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dokumentasi API Section -->
+            <section id="api" class="content-section">
+                 <h1 class="text-4xl font-bold mb-4 text-gray-900">Dokumentasi Endpoint API</h1>
+                <p class="text-lg text-gray-600 mb-8">
+                    RESTful API adalah jembatan komunikasi antara frontend dan backend. Di sini Anda dapat menjelajahi semua *endpoint* yang tersedia. Gunakan filter untuk menampilkan grup API tertentu atau gunakan kolom pencarian untuk menemukan *endpoint* spesifik berdasarkan URL atau deskripsinya.
+                </p>
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex flex-col md:flex-row gap-4 mb-6">
+                        <div class="flex-1">
+                             <input type="text" id="api-search-input" placeholder="Cari endpoint (misal: /bookings, /admin/payments)..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                             <select id="api-filter-select" class="w-full md:w-auto p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="all">Semua Grup</option>
+                                <option value="publik">Publik</option>
+                                <option value="admin">Admin</option>
+                             </select>
+                        </div>
+                    </div>
+                    <div id="api-endpoint-list" class="space-y-4">
+                    </div>
+                 </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        const appData = {
+            database: [
+                { name: 'users', description: 'Menyimpan data akun untuk login.', columns: [
+                    { name: 'id', type: 'PK', desc: 'Identifier unik untuk setiap user.'},
+                    { name: 'username', type: 'String', desc: 'Nama unik pengguna.'},
+                    { name: 'password', type: 'String', desc: 'Hash password pengguna.'},
+                    { name: 'email', type: 'String', desc: 'Alamat email unik.'},
+                    { name: 'telepon', type: 'String', desc: 'Nomor telepon pengguna.'},
+                    { name: 'role', type: 'Enum', desc: 'Peran pengguna (admin/pendaki).'},
+                    { name: 'status', type: 'Enum', desc: 'Status akun (aktif/suspend).'},
+                ]},
+                { name: 'hikers', description: 'Menyimpan data personal pendaki.', columns: [
+                    { name: 'id', type: 'PK', desc: 'Identifier unik untuk setiap pendaki.'},
+                    { name: 'user_id', type: 'FK', desc: 'Relasi ke tabel `users`.'},
+                    { name: 'nama_lengkap', type: 'String', desc: 'Nama lengkap pendaki.'},
+                    { name: 'no_identitas', type: 'String', desc: 'Nomor identitas unik (KTP).'},
+                    { name: 'alamat', type: 'String', desc: 'Alamat domisili.'},
+                    { name: 'tanggal_lahir', type: 'Date', desc: 'Tanggal lahir pendaki.'},
+                    { name: 'jenis_kelamin', type: 'Enum', desc: 'Jenis kelamin.'},
+                    { name: 'status', type: 'Enum', desc: 'Status pendaki (aktif/blacklist).'},
+                    { name: 'alasan_blacklist', type: 'Text', desc: 'Alasan jika statusnya blacklist.'},
+                ]},
+                { name: 'bookings', description: 'Menyimpan data booking utama.', columns: [
+                    { name: 'id', type: 'PK', desc: 'Identifier unik.'},
+                    { name: 'kode_booking', type: 'String', desc: 'Kode unik untuk setiap booking.'},
+                    { name: 'ketua_id', type: 'FK', desc: 'Relasi ke `hikers` sebagai ketua.'},
+                    { name: 'tanggal_pendakian', type: 'Date', desc: 'Tanggal rencana pendakian.'},
+                    { name: 'jumlah_pendaki', type: 'Int', desc: 'Total pendaki dalam booking.'},
+                    { name: 'total_bayar', type: 'Decimal', desc: 'Total biaya yang harus dibayar.'},
+                    { name: 'status_pembayaran', type: 'Enum', desc: 'Status pembayaran (pending, verified).'},
+                    { name: 'status_pendakian', type: 'Enum', desc: 'Status aktivitas (booked, check-in, check-out).'},
+                ]},
+                { name: 'booking_members', description: 'Tabel pivot untuk menghubungkan booking dengan anggotanya.', columns: [
+                    { name: 'id', type: 'PK', desc: 'Identifier unik.'},
+                    { name: 'booking_id', type: 'FK', desc: 'Relasi ke tabel `bookings`.'},
+                    { name: 'hiker_id', type: 'FK', desc: 'Relasi ke tabel `hikers`.'},
+                ]},
+                { name: 'payments', description: 'Menyimpan detail transaksi pembayaran.', columns: [
+                    { name: 'id', type: 'PK', desc: 'Identifier unik.'},
+                    { name: 'booking_id', type: 'FK', desc: 'Relasi ke `bookings`.'},
+                    { name: 'jumlah', type: 'Decimal', desc: 'Jumlah yang dibayarkan.'},
+                    { name: 'bukti_bayar', type: 'String', desc: 'Path ke file gambar bukti bayar.'},
+                    { name: 'status', type: 'Enum', desc: 'Status pembayaran (pending, verified).'},
+                    { name: 'verified_by', type: 'FK', desc: 'ID admin yang memverifikasi.'},
+                ]},
+                { name: 'checkins', description: 'Mencatat waktu naik dan turun setiap pendaki.', columns: [
+                    { name: 'id', type: 'PK', desc: 'Identifier unik.'},
+                    { name: 'booking_id', type: 'FK', desc: 'Relasi ke `bookings`.'},
+                    { name: 'hiker_id', type: 'FK', desc: 'Relasi ke `hikers`.'},
+                    { name: 'waktu_checkin', type: 'Timestamp', desc: 'Waktu pendaki mulai mendaki.'},
+                    { name: 'waktu_checkout', type: 'Timestamp', desc: 'Waktu pendaki selesai mendaki.'},
+                ]},
+                 { name: 'quotas', description: 'Mengelola kuota pendakian harian.', columns: [
+                    { name: 'id', type: 'PK', desc: 'Identifier unik.'},
+                    { name: 'tanggal', type: 'Date', desc: 'Tanggal kuota berlaku.'},
+                    { name: 'kuota_max', type: 'Int', desc: 'Jumlah maksimal pendaki per hari.'},
+                    { name: 'kuota_terpakai', type: 'Int', desc: 'Jumlah kuota yang sudah terisi.'},
+                ]},
+                { name: 'sops', description: 'Menyimpan aturan dan SOP pendakian.', columns: [
+                     { name: 'id', type: 'PK', desc: 'Identifier unik.' },
+                     { name: 'aturan', type: 'String', desc: 'Isi dari aturan atau SOP.' },
+                ]},
+            ],
+            apiEndpoints: [
+                { method: 'GET', url: '/api/info/sop', desc: 'Mendapatkan data SOP pendakian.', group: 'publik' },
+                { method: 'GET', url: '/api/info/weather', desc: 'Mendapatkan data cuaca terkini.', group: 'publik' },
+                { method: 'GET', url: '/api/quotas', desc: 'Cek kuota pendakian berdasarkan tanggal (?tanggal=YYYY-MM-DD).', group: 'publik' },
+                { method: 'POST', url: '/api/bookings', desc: 'Membuat booking baru.', group: 'publik' },
+                { method: 'GET', url: '/api/bookings/{kode_booking}', desc: 'Cek detail status booking.', group: 'publik' },
+                { method: 'POST', url: '/api/bookings/{kode_booking}/payment', desc: 'Mengunggah bukti pembayaran.', group: 'publik' },
+                { method: 'POST', url: '/api/admin/login', desc: 'Login untuk admin.', group: 'admin' },
+                { method: 'GET', url: '/api/admin/payments', desc: 'Melihat daftar pembayaran yang perlu diverifikasi.', group: 'admin' },
+                { method: 'PATCH', url: '/api/admin/payments/{id}/verify', desc: 'Memverifikasi atau menolak sebuah pembayaran.', group: 'admin' },
+                { method: 'GET', url: '/api/admin/bookings/today', desc: 'Mencari booking untuk proses check-in hari ini.', group: 'admin' },
+                { method: 'POST', url: '/api/admin/checkin', desc: 'Mencatat pendaki yang check-in.', group: 'admin' },
+                { method: 'PATCH', url: '/api/admin/checkout', desc: 'Mencatat pendaki yang check-out.', group: 'admin' },
+                { method: 'GET', url: '/api/admin/history', desc: 'Mendapatkan riwayat semua pendakian.', group: 'admin' },
+                { method: 'GET', url: '/api/admin/hikers', desc: 'Melihat daftar semua pendaki.', group: 'admin' },
+                { method: 'PATCH', url: '/api/admin/hikers/{id}/blacklist', desc: 'Mengubah status pendaki menjadi blacklist.', group: 'admin' },
+            ],
+            tasks: {
+                'Mahasiswa 1': 3, 'Mahasiswa 2': 3, 'Mahasiswa 3': 4, 'Mahasiswa 4': 3, 'Mahasiswa 5': 3
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const contentSections = document.querySelectorAll('.content-section');
+            const dbTablesNav = document.getElementById('db-tables-nav');
+            const dbTableDetails = document.getElementById('db-table-details');
+            const apiEndpointList = document.getElementById('api-endpoint-list');
+            const apiSearchInput = document.getElementById('api-search-input');
+            const apiFilterSelect = document.getElementById('api-filter-select');
+
+            let currentSection = 'ringkasan';
+            let currentDbTable = appData.database[0].name;
+            
+            function renderSection() {
+                sidebarNav.querySelectorAll('a').forEach(link => {
+                    link.classList.toggle('active', link.dataset.section === currentSection);
+                });
+                contentSections.forEach(section => {
+                    section.classList.toggle('active', section.id === currentSection);
+                });
+            }
+
+            function renderDbTables() {
+                dbTablesNav.innerHTML = appData.database.map(table => `
+                    <button data-table-name="${table.name}" class="table-badge text-sm font-medium py-1.5 px-3 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white">
+                        ${table.name}
+                    </button>
+                `).join('');
+                renderDbTableDetails();
+            }
+
+            function renderDbTableDetails() {
+                const tableData = appData.database.find(t => t.name === currentDbTable);
+                if (!tableData) return;
+                
+                dbTablesNav.querySelectorAll('button').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tableName === currentDbTable);
+                });
+
+                dbTableDetails.innerHTML = `
+                    <h3 class="text-xl font-bold mb-2 text-gray-900">${tableData.name}</h3>
+                    <p class="text-gray-600 mb-6">${tableData.description}</p>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Kolom</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipe</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${tableData.columns.map(col => `
+                                    <tr>
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">${col.name}</td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${col.type === 'PK' ? 'bg-red-100 text-red-800' : col.type === 'FK' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}">${col.type}</span></td>
+                                        <td class="px-4 py-2 text-sm text-gray-600">${col.desc}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            function renderApiEndpoints() {
+                const searchTerm = apiSearchInput.value.toLowerCase();
+                const filterGroup = apiFilterSelect.value;
+
+                const filteredEndpoints = appData.apiEndpoints.filter(api => {
+                    const matchesSearch = api.url.toLowerCase().includes(searchTerm) || api.desc.toLowerCase().includes(searchTerm);
+                    const matchesFilter = filterGroup === 'all' || api.group === filterGroup;
+                    return matchesSearch && matchesFilter;
+                });
+                
+                if (filteredEndpoints.length === 0) {
+                    apiEndpointList.innerHTML = `<p class="text-center text-gray-500 py-8">Tidak ada endpoint yang cocok dengan kriteria Anda.</p>`;
+                    return;
+                }
+
+                apiEndpointList.innerHTML = filteredEndpoints.map(api => `
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-sm px-2 py-0.5 rounded-full ${
+                                    api.method === 'GET' ? 'bg-blue-100 text-blue-800' :
+                                    api.method === 'POST' ? 'bg-green-100 text-green-800' :
+                                    api.method === 'PATCH' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-800'
+                                }">${api.method}</span>
+                                <code class="font-mono text-sm md:text-base text-gray-800">${api.url}</code>
+                            </div>
+                             <span class="hidden md:inline-block text-xs font-semibold px-2 py-1 rounded-full ${api.group === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">${api.group}</span>
+                        </div>
+                        <p class="mt-2 text-gray-600 text-sm">${api.desc}</p>
+                    </div>
+                `).join('');
+            }
+
+            sidebarNav.addEventListener('click', (e) => {
+                if (e.target.closest('a')) {
+                    e.preventDefault();
+                    currentSection = e.target.closest('a').dataset.section;
+                    renderSection();
+                }
+            });
+
+            dbTablesNav.addEventListener('click', (e) => {
+                if (e.target.closest('button')) {
+                    currentDbTable = e.target.closest('button').dataset.tableName;
+                    renderDbTableDetails();
+                }
+            });
+            
+            apiSearchInput.addEventListener('input', renderApiEndpoints);
+            apiFilterSelect.addEventListener('change', renderApiEndpoints);
+
+            function initChart() {
+                const ctx = document.getElementById('taskDistributionChart').getContext('2d');
+                const labels = Object.keys(appData.tasks);
+                const data = Object.values(appData.tasks);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Jumlah Endpoint API',
+                            data: data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: (context) => context[0].label,
+                                    label: (context) => ` Jumlah Tugas: ${context.raw}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function initialize() {
+                renderSection();
+                renderDbTables();
+                renderApiEndpoints();
+                initChart();
+            }
+
+            initialize();
+        });
+    </script>
+</body>
+</html>
